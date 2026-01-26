@@ -3,19 +3,15 @@
 # ====================================================================================================
 
 #Imports
-# Import da biblioteca da Interface
-import customtkinter as ctk
-from tkinter import filedialog, messagebox
-import os
-from pathlib import Path
+import customtkinter as ctk # Import da biblioteca da Interface
+from tkinter import filedialog, messagebox # Diálogos nativos do sistema
+import os   # Operações com arquivos e pastas (como 'fs' em Node.js)
+from pathlib import Path # Manipulação de caminhos de arquivos
 
-# Configuração do tema
-ctk.set_appearance_mode("dark")
-
-# Classe principal da aplicação
+# Classe principal da aplicação #
 class ETS2CompanyTool:
 
-    def ___init___(self):  # Em py se usa self ao invés de this como no js e o ___init___ é o construtor da classe
+    def __init__(self):  # Em py se usa self ao invés de this como no js e o ___init___ é o construtor da classe
 
         ctk.set_appearance_mode("dark") # Define o modo escuro da interface
         ctk.set_default_color_theme("blue") # Define a cor padrão de destaque
@@ -23,8 +19,8 @@ class ETS2CompanyTool:
         # Criação da janela
         self.janela = ctk.CTk()
         self.janela.title("ETS2 Company Tool") # Título da janela
-        self.janela.geometry("800x800") # Largura x Altura
-        self.janela.minsize(700, 700) # Define o tamanho mínimo da janela
+        self.janela.geometry("900x900") # Largura x Altura
+        self.janela.minsize(800, 800) # Define o tamanho mínimo da janela
 
 
         # Variaveis que vão armazenar os caminhos dos arquiivos selecionaveis
@@ -165,9 +161,9 @@ class ETS2CompanyTool:
         header = ctk.CTkFrame(frame_empresas, fg_color="transparent")
         header.pack(fill="x", padx=10, pady=5)
         
-        header = ctk.CTkLabel(
+        ctk.CTkLabel(
             header,
-            texct="🏢 Empresas Encontradas",
+            text="🏢 Empresas Encontradas",
             font=ctk.CTkFont(size=16, weight="bold")
         ).pack(side="left")
 
@@ -209,8 +205,8 @@ class ETS2CompanyTool:
             font=ctk.CTkFont(size=16, weight="bold")
         ).pack(anchor="w", padx=10, pady=5)
 
-        self.text_log = ctk.CTkTextbox(frame_log, height=150)
-        self.text_log.pack(fill="both", expand=True, padx=10, pady=5)
+        self.texto_log = ctk.CTkTextbox(frame_log, height=150)
+        self.texto_log.pack(fill="both", expand=True, padx=10, pady=5)
         self._log("Programa iniciado. Selecione as pastas para começar.")
 
     # Cria os botões de ação
@@ -235,20 +231,148 @@ class ETS2CompanyTool:
             command=self._executar
         ).pack(side="right", padx=5)
 
-    # TODO Próximo: Implementar os métodos de ação
+    # Métodos de Ação #
+    def _selecionar_pasta_company(self):
 
+        pasta = filedialog.askdirectory(title="Selecione a Pasta Company do Seu Mod")
+        if pasta: # Se uma pasta foi selecionada
+            self.pasta_company.set(pasta)
+            self._log(f"Pasta Company selecionada: {pasta}")
+            self._carregar_empresas()
 
+    def _selecionar_pasta_in(self):
+        pasta = filedialog.askdirectory(title="Selecione a Pasta IN que Contém seus Arquivos Modelo")
+        if pasta:
+            self.pasta_in_modelo.set(pasta)
+            self._log(f"Pasta IN Modelo Selecionada: {pasta}")
 
+    def _selecionar_pasta_out(self):
+        pasta = filedialog.askdirectory(title="Selecione a Pasta OUT que Contém seus Arquivos Modelo")
+        if pasta:
+            self.pasta_out_modelo.set(pasta)
+            self._log(f"Pasta OUT Modelo Selecionada: {pasta}")
+    
+    def _carregar_empresas(self):
+        # Lógica que vai cerregar e ler a pasta company e identificar as empresas disponíveis
+        pasta = self.pasta_company.get()
 
+        # Limpa a lista atual se já possuia algum arquivo aberto
+        for widget in self.frame_lista_empresas.winfo_children():
+            widget.destroy()
 
+        self.empresas = [] # Reseta a lista, array vazio
+        self.empresas_selecionadas = {}
 
+        if not pasta or not os.path.exists(pasta):
+            self._log("ERRO: Caminho da pasta Company inválido ou não existe!")
+            return
 
+        # Lista todas as subpastas existentes na pasta principal da company
+        for item in sorted(os.listdir(pasta)):
+            caminho_completo = os.path.join(pasta, item)
+            # Verifica se realmente é uma pasta
+            if os.path.isdir(caminho_completo):
+                self.empresas.append(item)
+
+                # Variável booleana para os checkboxes
+                var = ctk.BooleanVar(value=True) # Por padrão vem todas selecionadas
+                self.empresas_selecionadas[item] = var
+
+                checkbox = ctk.CTkCheckBox(
+                    self.frame_lista_empresas,
+                    text=item,
+                    variable=var
+                )
+                checkbox.pack(anchor="w", pady=2)
+
+            if self.empresas:
+                self._log(f"Encontradas {len(self.empresas)} empresas na pasta Company.")
+            else:
+                ctk.CTkLabel(
+                    self.frame_lista_empresas,
+                    text="Nenhuma empresa encontrada na pasta Company selecionada.",
+                    text_color="gray"
+                ).pack(pady=20)
+
+    def _selecionar_todas(self):
+        for var in self.empresas_selecionadas.values():
+            var.set(True)
+
+    def _desmarcar_todas(self):
+        for var in self.empresas_selecionadas.values():
+            var.set(False)
+
+    def _log(self, mensagem):
+        self.texto_log.insert("end", f"{mensagem}\n")
+        self.texto_log.see("end")  # Rola automaticamente para o final
+
+    def _mostrar_preview(self):
+        if not self._validar_selecoes():
+            return
+        
+        empresas_marcadas = [
+            nome for nome, var in self.empresas_selecionadas.items()
+            if var.get()
+        ]
+
+        modo = self.modo_operacao.get()
+
+        self._log("=" * 40)
+        self._log(f"PREVIEW - Modo: {modo.upper()}")
+        self._log(f"Empresas Selecionadas ({len(empresas_marcadas)})")
+        for empresa in empresas_marcadas:
+            self._log(f" -{empresa}")
+        self._log("=" * 40)
+
+    def _validar_selecoes(self):
+        if not self.pasta_company.get():
+            messagebox.showerror("Erro", "Por favor, selecione a pasta Company.")
+        if not self.pasta_in_modelo.get():
+            messagebox.showerror("Erro", "Por favor, selecione a pasta IN modelo.")
+        if not self.pasta_out_modelo.get():
+            messagebox.showerror("Erro", "Por favor, selecione a pasta OUT modelo.")
+
+        empresas_marcadas = [
+            nome for nome, var in self.empresas_selecionadas.items()
+            if var.get()
+        ]
+
+        if not empresas_marcadas:
+            messagebox.showerror("Erro", "Por favor, selecione ao menos uma empresa para processar.")
+            return False
+        return True
+
+    def _executar(self):
+
+        if not self._validar_selecoes():
+            return
+        
+        empresas_marcadas = [
+            nome for nome, var in self.empresas_selecionadas.items()
+            if var.get()
+        ]
+
+        if not empresas_marcadas:
+            messagebox.showwarning("Aviso", "Nenhuma empresa selecionada!")
+            return
+        
+        modo = self.modo_operacao.get()
+        resposta = messagebox.askyesno(
+            "Confirmar",
+            f"Você tem certeza que deseja executar a operação '{modo}' em {len(empresas_marcadas)} empresas?"
+        )
+
+        if resposta:
+            self._log("Iniciando operação...")
+            # TODO: Implementar a lógica de cópia real
+            self._log("✅ Operação concluída!")
+            messagebox.showinfo("Concluído", "Operação concluída com sucesso!")
 
     # Inicia a Aplicação
     def executar(self):
         self.janela.mainloop()
 
-# Ponto de entrada do programa
+# Ponto de entrada do programa #
 if __name__ == "__main__":
     # Cria uma instância da aplicação
     app = ETS2CompanyTool()
