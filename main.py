@@ -93,7 +93,7 @@ class ETS2CompanyTool:
         # Pasta Company
         self._criar_seletor_pasta(
             frame_pastas,
-            "Pasta Company (do mod):",
+            "Pasta Company (pasta def/company do seu mod se for pasta normal):",
             self.pasta_company,
             self._selecionar_pasta_company
         )
@@ -101,7 +101,7 @@ class ETS2CompanyTool:
         # Pasta IN Modelo
         self._criar_seletor_pasta(
             frame_pastas,
-            "Pasta IN Modelo (com os arquivos modelo a serem inseridos):",
+            "Pasta IN Modelo (com os arquivos modelo a serem inseridos na company):",
             self.pasta_in_modelo,
             self._selecionar_pasta_in
         )
@@ -109,7 +109,7 @@ class ETS2CompanyTool:
         # Pasta OUT Modelo
         self._criar_seletor_pasta(
             frame_pastas,
-            "Pasta OUT Modelo (com os arquivos modelo a serem inseridos):",
+            "Pasta OUT Modelo (com os arquivos modelo a serem inseridos na company):",
             self.pasta_out_modelo,
             self._selecionar_pasta_out
         )
@@ -129,26 +129,6 @@ class ETS2CompanyTool:
         frame_selecao = ctk.CTkFrame(frame_importar, fg_color="transparent")
         frame_selecao.pack(fill="x", padx=10, pady=2)
 
-        ctk.CTkLabel(
-            frame_selecao,
-            text="Pasta com empresas:",
-            width=180,
-            anchor="w"
-        ).pack(side="left")
-
-        ctk.CTkEntry(
-            frame_selecao,
-            textvariable=self.pasta_empresas_fonte,
-            width=400
-        ).pack(side="left", padx=5)
-
-        ctk.CTkButton(
-            frame_selecao,
-            text="Selecionar",
-            width=100,
-            command=self._selecionar_pasta_empresas_fonte
-        ).pack(side="left")
-
         ctk.CTkButton(
             frame_selecao,
             text="Importar",
@@ -156,7 +136,28 @@ class ETS2CompanyTool:
             fg_color="orange",
             hover_color="dark orange",
             command=self._importar_empresas
-        ).pack(side="left", padx=5)
+        ).pack(side="right", padx=(5, 0))
+
+        ctk.CTkButton(
+            frame_selecao,
+            text="Selecionar",
+            width=100,
+            command=self._selecionar_pasta_empresas_fonte
+        ).pack(side="right")
+
+        # Label à esquerda
+        ctk.CTkLabel(
+            frame_selecao,
+            text="Pasta com as empresas (arquivos de companys do mapa desejado):",
+            width=350,
+            anchor="w"
+        ).pack(side="left")
+
+        # Entry expande no espaço restante
+        ctk.CTkEntry(
+            frame_selecao,
+            textvariable=self.pasta_empresas_fonte
+        ).pack(side="left", fill="x", expand=True, padx=5)
 
     # Cria a seção para criar o seletor de pastas
     def _criar_seletor_pasta(self, parent, label_text, variavel, comando):
@@ -164,17 +165,20 @@ class ETS2CompanyTool:
         frame = ctk.CTkFrame(parent, fg_color="transparent")
         frame.pack(fill="x", padx=10, pady=2)
 
-        ctk.CTkLabel(frame, text=label_text, width=180, anchor="w").pack(side="left")
-
-        entrada = ctk.CTkEntry(frame, textvariable=variavel, width=400)
-        entrada.pack(side="left", padx=5)
-
+        # Botão à direita (adiciona primeiro para ficar à direita)
         ctk.CTkButton(
             frame,
             text="Selecionar",
             width=100,
             command=comando
-        ).pack(side="left")
+        ).pack(side="right", padx=(5, 0))
+
+        # Label à esquerda com largura fixa
+        ctk.CTkLabel(frame, text=label_text, width=350, anchor="w").pack(side="left")
+
+        # Entry expande no espaço restante
+        entrada = ctk.CTkEntry(frame, textvariable=variavel)
+        entrada.pack(side="left", fill="x", expand=True, padx=5)
     
     # Cria a seção para selecionar a pasta Company
     def _criar_secao_modo(self):
