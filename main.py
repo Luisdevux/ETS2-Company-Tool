@@ -68,7 +68,7 @@ class ETS2CompanyTool:
         self._criar_secao_empresas()
 
         # Logs
-        self._criar_secao_logs()
+        self._criar_secao_log()
 
         # Botões das Ações
         self._criar_botoes_acao()
@@ -162,7 +162,87 @@ class ETS2CompanyTool:
         frame_empresas = ctk.CTkFrame(self.container)
         frame_empresas.pack(fill="both", expand=True, pady=(0, 10))
 
+        header = ctk.CTkFrame(frame_empresas, fg_color="transparent")
+        header.pack(fill="x", padx=10, pady=5)
         
+        header = ctk.CTkLabel(
+            header,
+            texct="🏢 Empresas Encontradas",
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).pack(side="left")
+
+        ctk.CTkButton(
+            header,
+            text="Selecionar Todas",
+            width=120,
+            command=self._selecionar_todas
+        ).pack(side="right", padx=5)
+
+        ctk.CTkButton(
+            header,
+            text="Desmarcar Todas",
+            width=120,
+            command=self._desmarcar_todas
+        ).pack(side="right", padx=5)
+
+        # Frame com scroll para a lista de empresas
+        self.frame_lista_empresas = ctk.CTkScrollableFrame(frame_empresas, height=150)
+        self.frame_lista_empresas.pack(fill="both", expand=True, padx=10, pady=5)
+
+        # Mensagem inicial
+        self.label_sem_empresas = ctk.CTkLabel(
+            self.frame_lista_empresas,
+            text="Selecione uma pasta Company para ver as empresas disponíveis",
+            text_color="gray"
+        )
+        self.label_sem_empresas.pack(pady=20)
+
+    # Cria a seção de logs
+    def _criar_secao_log(self):
+
+        frame_log = ctk.CTkFrame(self.container)
+        frame_log.pack(fill="both", pady=(0,10))
+
+        ctk.CTkLabel(
+            frame_log,
+            text="📝 Logs de Ações",
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).pack(anchor="w", padx=10, pady=5)
+
+        self.text_log = ctk.CTkTextbox(frame_log, height=150)
+        self.text_log.pack(fill="both", expand=True, padx=10, pady=5)
+        self._log("Programa iniciado. Selecione as pastas para começar.")
+
+    # Cria os botões de ação
+    def _criar_botoes_acao(self):
+
+        frame_botoes = ctk.CTkFrame(self.container, fg_color="transparent")
+        frame_botoes.pack(fill="x")
+
+        ctk.CTkButton(
+            frame_botoes,
+            text="👁️ Preview",
+            width=150,
+            command=self._mostrar_preview
+        ).pack(side="left", padx=5)
+
+        ctk.CTkButton(
+            frame_botoes,
+            text="🚀 Executar",
+            width=150,
+            fg_color="green",
+            hover_color="dark green",
+            command=self._executar
+        ).pack(side="right", padx=5)
+
+    # TODO Próximo: Implementar os métodos de ação
+
+
+
+
+
+
+
 
     # Inicia a Aplicação
     def executar(self):
