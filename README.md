@@ -61,7 +61,7 @@ O ETS2 Company Tool automatiza todo esse processo:
 ## 🖥️ Screenshots
 
 <p align="center">
-  <img src="docs/screenshot.png" alt="Screenshot do ETS2 Company Tool" width="700">
+  <img src="docs/ETS2Tool.png" alt="Screenshot do ETS2 Company Tool" width="700">
 </p>
 
 > 💡 *Interface moderna com tema escuro*
@@ -181,25 +181,37 @@ ets2-company-tool/
 
 ## 🤝 Contribuindo
 
-Contribuições são bem-vindas! Sinta-se à vontade para:
+Contribuições são bem-vindas! 🎉
 
-1. 🍴 Fazer um Fork do projeto
-2. 🔧 Criar uma branch (`git checkout -b feature/nova-feature`)
-3. 💾 Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
-4. 📤 Push para a branch (`git push origin feature/nova-feature`)
-5. 📩 Abrir um Pull Request
+Leia o guia completo em [CONTRIBUTING.md](CONTRIBUTING.md) para saber como:
+
+- 🐛 Reportar bugs
+- 💡 Sugerir funcionalidades
+- 🔧 Enviar código
+
+Por favor, siga nosso [Código de Conduta](CODE_OF_CONDUCT.md).
 
 ---
 
 ## 📝 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+Este projeto é open source e está sob a licença **MIT**. 
+
+Isso significa que você pode:
+- ✅ Usar comercialmente
+- ✅ Modificar
+- ✅ Distribuir
+- ✅ Usar privativamente
+
+Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 ---
 
 ## 👨‍💻 Autor
 
 Desenvolvido para a comunidade de modders do ETS2 🚛
+
+**Contribuidores são bem-vindos!**
 
 ---
 
