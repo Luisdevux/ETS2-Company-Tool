@@ -263,7 +263,7 @@ class ETS2CompanyTool:
             font=ctk.CTkFont(size=16, weight="bold")
         ).pack(anchor="w", padx=10, pady=5)
 
-        self.texto_log = ctk.CTkTextbox(frame_log, height=150)
+        self.texto_log = ctk.CTkTextbox(frame_log, height=150, state="disabled")
         self.texto_log.pack(fill="both", expand=True, padx=10, pady=5)
         self._log("Programa iniciado. Selecione as pastas para começar.")
 
@@ -434,20 +434,35 @@ class ETS2CompanyTool:
             return
         
         self._log(f"Iniciando importação de {len(empresas)} empresas...")
+        self._log("⏳ Aguarde...")
+        self.janela.update()
+        
+        importadas = 0
+        puladas = 0
 
-        for empresa in empresas:
+        for i, empresa in enumerate(empresas, 1):
             origem = os.path.join(pasta_fonte, empresa)
             destino = os.path.join(pasta_destino, empresa)
 
             if os.path.exists(destino):
-                self._log(f"Empresa {empresa} já existe na pasta destino. Pulando importação.")
+                puladas += 1
                 continue
 
             shutil.copytree(origem, destino)
-            self._log(f"Empresa {empresa} importada com sucesso.")
+            importadas += 1
+            
+            # Atualiza progresso a cada 10 empresas
+            if i % 10 == 0 or i == len(empresas):
+                self._log(f"📦 Importando... {i}/{len(empresas)}")
+                self.janela.update()
         
-        self._log(f"Importação concluída!")
-        messagebox.showinfo("Sucesso", f"{len(empresas)} empresas importadas!")
+        self._log("=" * 40)
+        self._log(f"✅ Importação concluída!")
+        self._log(f"Importadas: {importadas}")
+        if puladas > 0:
+            self._log(f"Puladas (já existiam): {puladas}")
+        
+        messagebox.showinfo("Sucesso", f"Importação concluída!\n\nImportadas: {importadas}\nPuladas: {puladas}")
 
         # Atualiza a lista de empresas na interface
         self._carregar_empresas()
@@ -503,8 +518,10 @@ class ETS2CompanyTool:
             var.set(False)
 
     def _log(self, mensagem):
+        self.texto_log.configure(state="normal")
         self.texto_log.insert("end", f"{mensagem}\n")
         self.texto_log.see("end")  # Rola automaticamente para o final
+        self.texto_log.configure(state="disabled")
 
     def _mostrar_preview(self):
         if not self._validar_selecoes():
@@ -527,10 +544,13 @@ class ETS2CompanyTool:
     def _validar_selecoes(self):
         if not self.pasta_company.get():
             messagebox.showerror("Erro", "Por favor, selecione a pasta Company.")
+            return False
         if not self.pasta_in_modelo.get():
             messagebox.showerror("Erro", "Por favor, selecione a pasta IN modelo.")
+            return False
         if not self.pasta_out_modelo.get():
             messagebox.showerror("Erro", "Por favor, selecione a pasta OUT modelo.")
+            return False
 
         empresas_marcadas = [
             nome for nome, var in self.empresas_selecionadas.items()
@@ -543,39 +563,49 @@ class ETS2CompanyTool:
         return True
     
     def _copiar_arquivos_para_empresa(self, empresa):
+        try:
+            # Monta o caminho completo da empresa na pasta company
+            caminho_empresa = os.path.join(self.pasta_company.get(), empresa)
+            caminho_in = os.path.join(caminho_empresa, "in")
+            caminho_out = os.path.join(caminho_empresa, "out")
 
-        # Monta o caminho completo da empresa na pasta company
-        caminho_empresa = os.path.join(self.pasta_company.get(), empresa)
-        caminho_in = os.path.join(caminho_empresa, "in")
-        caminho_out = os.path.join(caminho_empresa, "out")
+            modo = self.modo_operacao.get()
 
-        modo = self.modo_operacao.get()
+            if modo == "substituir":
+                if os.path.exists(caminho_in):
+                    shutil.rmtree(caminho_in)
+                if os.path.exists(caminho_out):
+                    shutil.rmtree(caminho_out)
 
-        if modo == "substituir":
-            if os.path.exists(caminho_in):
-                shutil.rmtree(caminho_in)
-            if os.path.exists(caminho_out):
-                shutil.rmtree(caminho_out)
+            # Cria as pastas caso não existam
+            os.makedirs(caminho_in, exist_ok=True)
+            os.makedirs(caminho_out, exist_ok=True)
 
-        # Cria as pastas caso não existam
-        os.makedirs(caminho_in, exist_ok=True)
-        os.makedirs(caminho_out, exist_ok=True)
+            # Copia os arquivos da pasta IN modelo
+            pasta_in_modelo = self.pasta_in_modelo.get()
+            arquivos_in = 0
+            for arquivo in os.listdir(pasta_in_modelo):
+                origem = os.path.join(pasta_in_modelo, arquivo)
+                destino = os.path.join(caminho_in, arquivo)
+                if os.path.isfile(origem):
+                    shutil.copy2(origem, destino)
+                    arquivos_in += 1
 
-        # Copia os arquivos da pasta IN modelo
-        pasta_in_modelo = self.pasta_in_modelo.get()
-        for arquivo in os.listdir(pasta_in_modelo):
-            origem = os.path.join(pasta_in_modelo, arquivo)
-            destino = os.path.join(caminho_in, arquivo)
-            if os.path.isfile(origem):
-                shutil.copy2(origem, destino)
-
-        # Copia os arquivos da pasta OUT modelo
-        pasta_out_modelo = self.pasta_out_modelo.get()
-        for arquivo in os.listdir(pasta_out_modelo):
-            origem = os.path.join(pasta_out_modelo, arquivo)
-            destino = os.path.join(caminho_out, arquivo)
-            if os.path.isfile(origem):
-                shutil.copy2(origem, destino)
+            # Copia os arquivos da pasta OUT modelo
+            pasta_out_modelo = self.pasta_out_modelo.get()
+            arquivos_out = 0
+            for arquivo in os.listdir(pasta_out_modelo):
+                origem = os.path.join(pasta_out_modelo, arquivo)
+                destino = os.path.join(caminho_out, arquivo)
+                if os.path.isfile(origem):
+                    shutil.copy2(origem, destino)
+                    arquivos_out += 1
+            
+            return True
+            
+        except Exception as e:
+            self._log(f"Erro ao processar {empresa}: {str(e)}")
+            return False
 
     def _executar(self):
 
@@ -598,12 +628,36 @@ class ETS2CompanyTool:
         )
 
         if resposta:
-            self._log("Iniciando operação...")
-            for empresa in empresas_marcadas:
-                self._log(f"Processando empresa: {empresa}...")
-                self._copiar_arquivos_para_empresa(empresa)
-            self._log("✅ Operação concluída!")
-            messagebox.showinfo("Concluído", "Operação concluída com sucesso!")
+            self._log("=" * 40)
+            self._log("🚀 Iniciando operação...")
+            self.janela.update()
+            
+            sucesso = 0
+            erros = 0
+            
+            for i, empresa in enumerate(empresas_marcadas, 1):
+                self._log(f"[{i}/{len(empresas_marcadas)}] Processando: {empresa}")
+                self.janela.update()  # Atualiza interface durante o processo
+                
+                if self._copiar_arquivos_para_empresa(empresa):
+                    sucesso += 1
+                else:
+                    erros += 1
+            
+            self._log("=" * 40)
+            self._log(f"✅ Operação concluída!")
+            self._log(f"Sucesso: {sucesso} empresas")
+            if erros > 0:
+                self._log(f"Erros: {erros} empresas")
+            
+            if erros > 0:
+                messagebox.showwarning(
+                    "Concluído com avisos", 
+                    f"Operação concluída!\n\nSucesso: {sucesso}\n Erros: {erros}\n\nVerifique o log para detalhes."
+                )
+            else:
+                messagebox.showinfo("Concluído", f"Operação concluída com sucesso!\n\n{sucesso} empresas processadas.")
+            
             self._recompactar_scs()
 
     # Inicia a Aplicação
