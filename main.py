@@ -317,13 +317,42 @@ class ETS2CompanyTool:
                 self._extrair_scs(arquivo)
 
         else:
-            pasta = filedialog.askdirectory(title="Selecione a Pasta Company do Seu Mod")
+            pasta = filedialog.askdirectory(title="Selecione a Pasta Raiz do Seu Mod")
             if pasta:
                 self.arquivo_scs = None
                 self.pasta_temporaria = None
-                self.pasta_company.set(pasta)
-                self._log(f"Pasta Company selecionada: {pasta}")
-                self._carregar_empresas()
+                
+                # Verifica se a pasta selecionada já é a company ou se precisa navegar até ela
+                pasta_company = self._encontrar_ou_criar_company(pasta)
+                
+                if pasta_company:
+                    self.pasta_company.set(pasta_company)
+                    self._carregar_empresas()
+    
+    def _encontrar_ou_criar_company(self, pasta_raiz):
+        # Caso 1: A pasta selecionada JÁ É a company (tem empresas dentro)
+        # Verifica se tem subpastas que parecem empresas
+        if os.path.basename(pasta_raiz).lower() == "company":
+            self._log(f"Pasta Company selecionada diretamente: {pasta_raiz}")
+            return pasta_raiz
+        
+        # Caso 2: A pasta contém def/company
+        pasta_company = os.path.join(pasta_raiz, "def", "company")
+        if os.path.exists(pasta_company):
+            self._log(f"Pasta Company encontrada em: {pasta_company}")
+            return pasta_company
+        
+        # Caso 3: A pasta é a "def" e contém company
+        pasta_company_direta = os.path.join(pasta_raiz, "company")
+        if os.path.basename(pasta_raiz).lower() == "def" and os.path.exists(pasta_company_direta):
+            self._log(f"Pasta Company encontrada em: {pasta_company_direta}")
+            return pasta_company_direta
+        
+        # Caso 4: Não encontrou, cria automaticamente
+        pasta_company = os.path.join(pasta_raiz, "def", "company")
+        os.makedirs(pasta_company, exist_ok=True)
+        self._log(f"📁 Pasta def/company criada em: {pasta_company}")
+        return pasta_company
     
     def _extrair_scs(self, arquivo_scs):
 
