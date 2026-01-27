@@ -282,6 +282,15 @@ class ETS2CompanyTool:
 
         ctk.CTkButton(
             frame_botoes,
+            text="🧹 Limpar",
+            width=150,
+            fg_color="gray",
+            hover_color="dark gray",
+            command=self._limpar_tudo
+        ).pack(side="left", padx=5)
+
+        ctk.CTkButton(
+            frame_botoes,
             text="🚀 Executar",
             width=150,
             fg_color="green",
@@ -388,11 +397,59 @@ class ETS2CompanyTool:
                             self.janela.update()  # Atualiza a interface
             
             self._log(f"✅ Arquivo criado: {caminho_novo}")
+            
+            # Limpa a pasta extraída
+            self._limpar_pasta_extraida()
+            
             messagebox.showinfo("Sucesso", f"Arquivo .scs criado!\n\n{novo_nome}")
 
         except Exception as e:
             self._log(f"Erro ao recompactar: {str(e)}")
             messagebox.showerror("Erro", f"Ocorreu um erro ao recompactar:\n{str(e)}")
+
+    def _limpar_pasta_extraida(self):
+        if self.pasta_temporaria and os.path.exists(self.pasta_temporaria):
+            try:
+                self._log(f"Limpando pasta temporária: {self.pasta_temporaria}")
+                shutil.rmtree(self.pasta_temporaria)
+                self._log("Pasta temporária removida com sucesso!")
+                self.pasta_temporaria = None
+            except Exception as e:
+                self._log(f"Erro ao remover pasta temporária: {str(e)}")
+
+    def _limpar_tudo(self):
+        resposta = messagebox.askyesno(
+            "Confirmar",
+            "Deseja limpar todos os campos e resetar o programa?"
+        )
+        
+        if not resposta:
+            return
+        
+        # Limpa os campos de texto
+        self.pasta_company.set("")
+        self.pasta_in_modelo.set("")
+        self.pasta_out_modelo.set("")
+        self.pasta_empresas_fonte.set("")
+        
+        # Reseta variáveis
+        self.arquivo_scs = None
+        self.pasta_temporaria = None
+        self.empresas = []
+        self.empresas_selecionadas = {}
+        
+        # Limpa a lista de empresas na interface
+        for widget in self.frame_lista_empresas.winfo_children():
+            widget.destroy()
+        
+        # Adiciona mensagem padrão
+        ctk.CTkLabel(
+            self.frame_lista_empresas,
+            text="Selecione uma pasta Company para ver as empresas disponíveis",
+            text_color="gray"
+        ).pack(pady=20)
+        
+        self._log("Programa resetado. Todos os campos foram limpos.")
 
     def _selecionar_pasta_in(self):
         pasta = filedialog.askdirectory(title="Selecione a Pasta IN que Contém seus Arquivos Modelo")
