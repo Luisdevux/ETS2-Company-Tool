@@ -114,7 +114,8 @@ python main.py
 
 ```
 1️⃣ Selecione a Pasta Company
-   └── Escolha o arquivo .scs desbloqueado do seu mod OU se for uma pasta descompactada normal do seu mod, direcione até a pasta def/company. Caso não tenha, será criada automaticamente, não se preocupe
+   └── Escolha o arquivo .scs desbloqueado do seu mod OU se for uma pasta descompactada normal do seu mod, 
+       direcione até a pasta def/company. Caso não tenha, será criada automaticamente, não se preocupe
 
 2️⃣ Importe as Empresas
    └── Selecione a pasta com as empresas do mapa
