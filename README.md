@@ -68,6 +68,20 @@ O ETS2 Company Tool automatiza todo esse processo:
 
 ---
 
+## ⚠️ Pré-requisitos
+
+> **Esta ferramenta NÃO cria cargas!** Ela apenas automatiza a cópia de arquivos já existentes.
+
+Para usar o ETS2 Company Tool, você precisa ter:
+
+1. **Arquivos modelo de carga** (`.sii`) que você já criou ou obteve
+2. **Um mod ou pasta de destino** onde as cargas serão copiadas
+3. **Companys dos Mapas Desejados** Uma pasta de company de mapa para importar a lista de empresas
+
+📦 Os arquivos modelo são os arquivos `.sii` de carga que você quer distribuir para múltiplas empresas. A ferramenta copia esses arquivos para as pastas `in/` e `out/` de cada empresa selecionada.
+
+---
+
 ## 📦 Instalação
 
 ### Opção 1: Executável (Recomendado)
