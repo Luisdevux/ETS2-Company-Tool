@@ -9,6 +9,7 @@ import os   # Operações com arquivos e pastas (como 'fs' em Node.js)
 from pathlib import Path # Manipulação de caminhos de arquivos
 import shutil # Operações de cópia e movimentação de arquivos
 import zipfile # Manipulação de arquivos zip
+import tempfile # Pasta temporária do sistema (segura para permissões)
 
 # Classe principal da aplicação #
 class ETS2CompanyTool:
@@ -356,9 +357,10 @@ class ETS2CompanyTool:
     
     def _extrair_scs(self, arquivo_scs):
 
-        # Cria uma pasta temporária para extrair o conteúdo do SCS e adiciona "extrido" ao nome
+        # Cria uma pasta temporária no diretório TEMP do sistema (evita problemas de permissão)
         nome_sem_extensao = os.path.splitext(os.path.basename(arquivo_scs))[0]
-        pasta_destino = nome_sem_extensao + "_extraido"
+        pasta_temp_sistema = tempfile.gettempdir()
+        pasta_destino = os.path.join(pasta_temp_sistema, nome_sem_extensao + "_extraido")
 
         self._log(f"Extraindo arquivo .scs para a pasta temporária: {pasta_destino}")
 
@@ -481,16 +483,98 @@ class ETS2CompanyTool:
         self._log("Programa resetado. Todos os campos foram limpos.")
 
     def _selecionar_pasta_in(self):
-        pasta = filedialog.askdirectory(title="Selecione a Pasta IN que Contém seus Arquivos Modelo")
-        if pasta:
-            self.pasta_in_modelo.set(pasta)
-            self._log(f"Pasta IN Modelo Selecionada: {pasta}")
+        # Primeiro pergunta se quer selecionar pasta ou arquivo .scs
+        escolha = messagebox.askquestion(
+            "Tipo de Seleção",
+            "Deseja selecionar um arquivo .scs?\n\nSim = Arquivo .scs\nNão = Pasta normal"
+        )
+        
+        if escolha == "yes":
+            arquivo = filedialog.askopenfilename(
+                title="Selecione o Arquivo .scs com os Modelos IN",
+                filetypes=[("Arquivos SCS", "*.scs"), ("Todos os arquivos", "*.*")]
+            )
+            if arquivo:
+                pasta_extraida = self._extrair_scs_modelo(arquivo, "in")
+                if pasta_extraida:
+                    # Usuário navega DENTRO do .scs extraído
+                    messagebox.showinfo(
+                        "Navegar no .scs",
+                        f"O arquivo foi extraído!\n\nAgora selecione a pasta IN desejada dentro do .scs extraído.\n\nExemplo: def/company/empresa/in"
+                    )
+                    pasta = filedialog.askdirectory(
+                        title="Selecione a Pasta IN dentro do .scs extraído",
+                        initialdir=pasta_extraida
+                    )
+                    if pasta:
+                        self.pasta_in_modelo.set(pasta)
+                        self._log(f"📦 Pasta IN selecionada: {pasta}")
+        else:
+            pasta = filedialog.askdirectory(title="Selecione a Pasta IN que Contém seus Arquivos Modelo")
+            if pasta:
+                self.pasta_in_modelo.set(pasta)
+                self._log(f"Pasta IN Modelo Selecionada: {pasta}")
 
     def _selecionar_pasta_out(self):
-        pasta = filedialog.askdirectory(title="Selecione a Pasta OUT que Contém seus Arquivos Modelo")
-        if pasta:
-            self.pasta_out_modelo.set(pasta)
-            self._log(f"Pasta OUT Modelo Selecionada: {pasta}")
+        # Primeiro pergunta se quer selecionar pasta ou arquivo .scs
+        escolha = messagebox.askquestion(
+            "Tipo de Seleção",
+            "Deseja selecionar um arquivo .scs?\n\nSim = Arquivo .scs\nNão = Pasta normal"
+        )
+        
+        if escolha == "yes":
+            arquivo = filedialog.askopenfilename(
+                title="Selecione o Arquivo .scs com os Modelos OUT",
+                filetypes=[("Arquivos SCS", "*.scs"), ("Todos os arquivos", "*.*")]
+            )
+            if arquivo:
+                pasta_extraida = self._extrair_scs_modelo(arquivo, "out")
+                if pasta_extraida:
+                    # Usuário navega DENTRO do .scs extraído
+                    messagebox.showinfo(
+                        "Navegar no .scs",
+                        f"O arquivo foi extraído!\n\nAgora selecione a pasta OUT desejada dentro do .scs extraído.\n\nExemplo: def/company/empresa/out"
+                    )
+                    pasta = filedialog.askdirectory(
+                        title="Selecione a Pasta OUT dentro do .scs extraído",
+                        initialdir=pasta_extraida
+                    )
+                    if pasta:
+                        self.pasta_out_modelo.set(pasta)
+                        self._log(f"📦 Pasta OUT selecionada: {pasta}")
+        else:
+            pasta = filedialog.askdirectory(title="Selecione a Pasta OUT que Contém seus Arquivos Modelo")
+            if pasta:
+                self.pasta_out_modelo.set(pasta)
+                self._log(f"Pasta OUT Modelo Selecionada: {pasta}")
+
+    def _extrair_scs_modelo(self, arquivo_scs, tipo):
+        try:
+            nome_sem_extensao = os.path.splitext(os.path.basename(arquivo_scs))[0]
+            pasta_temp_sistema = tempfile.gettempdir()
+            pasta_destino = os.path.join(pasta_temp_sistema, f"{nome_sem_extensao}_{tipo}_modelo")
+            
+            # Remove pasta anterior se existir
+            if os.path.exists(pasta_destino):
+                shutil.rmtree(pasta_destino)
+            
+            self._log(f"Extraindo .scs {tipo.upper()} para: {pasta_destino}")
+            self.janela.update()
+            
+            with zipfile.ZipFile(arquivo_scs, 'r') as zip_ref:
+                zip_ref.extractall(pasta_destino)
+            
+            self._log(f"✅ Extração do .scs {tipo.upper()} concluída!")
+            return pasta_destino
+            
+        except zipfile.BadZipFile:
+            self._log(f"ERRO: Arquivo {tipo.upper()} não é um ZIP/SCS válido!")
+            messagebox.showerror("Erro", "O arquivo não é um ZIP/SCS válido!")
+            return None
+        except Exception as e:
+            self._log(f"ERRO ao extrair {tipo.upper()}: {str(e)}")
+            messagebox.showerror("Erro", f"Erro ao extrair arquivo:\n{str(e)}")
+            return None
 
     def _selecionar_pasta_empresas_fonte(self):
         pasta = filedialog.askdirectory(title="Selecione a Pasta com as Empresas do Mapa")

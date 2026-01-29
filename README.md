@@ -14,7 +14,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Concluído-success?style=flat-square" alt="Status">
-  <img src="https://img.shields.io/badge/Version-1.0.0-blue?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.1.0-blue?style=flat-square" alt="Version">
 </p>
 
 ---
